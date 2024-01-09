@@ -1,0 +1,17 @@
+{{> formy}}
+{{> przyciski}}
+{{#each foldery}}
+<div class="folder">
+    <p>{{nazwa}}</p>
+    <a href="/Usun_folder?nazwa={{nazwa}}" onclick="return confirm('Czy usunac?')">X</a>
+</div>
+{{/each}}
+<hr>
+{{#each pliki}}
+<div class="plik">
+    <p>{{nazwa}}</p>
+    <a href="/Usun_plik?nazwa={{nazwa}}" onclick="return confirm('Czy usunac?')">X</a>
+</div>
+{{/each}}
+
+<script src="skryptyjs/dialog.js"></script>

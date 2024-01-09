@@ -1,0 +1,31 @@
+<table class="table">
+    <tr class="headersy">
+        <th>id</th>
+        <th>obraz</th>
+        <th>name</th>
+        <th>size</th>
+        <th>type</th>
+        <th>-</th>
+        <th>-</th>
+        <th>-</th>
+        <th>-</th>
+    </tr>
+    <form method="GET">
+        {{#each pliki}}
+        <div class="pliczki">
+            <tr>
+                <td> {{id}}</td>
+                <td><img src="{{image}}"></td>
+                <td> {{name}}</td>
+                <td> {{size}}</td>
+                <td> {{type}}</td>
+                <td><button type="submit" value="{{id}}" name="id" formaction="/show">SHOW</button></td>
+                <td><button type="submit" value="{{id}}" name="id" formaction="/info">INFO</button></td>
+                <td><button type="submit" name="przycisk" value="{{path}}" formaction="/download">DOWNLOAD</button>
+                </td>
+                <td><button type="submit" name="przycisk" value="{{id}}" formaction="/delete">DELETE</button></td>
+            </tr>
+        </div>
+        {{/each}}
+    </form>
+</table>
