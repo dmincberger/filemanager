@@ -1,17 +1,26 @@
 {{> formy}}
 {{> przyciski}}
-{{#each foldery}}
-<div class="folder">
-    <p>{{nazwa}}</p>
-    <a href="/Usun_folder?nazwa={{nazwa}}" onclick="return confirm('Czy usunac?')">X</a>
+<div class="hierarchia">
+    {{#each hierarchia}}
+    {{!-- <p>{{obecny_folder}}</p> --}}
+    <p>{{this}}</p>
+    {{/each}}
 </div>
-{{/each}}
+<div class="foldery">
+    {{#each foldery}}
+    <div class="folder">
+        <a href="/Filemanager_two?nazwa={{sciezka}}/{{nazwa}}">{{nazwa}}
+            <a href="/Usun_folder?nazwa={{nazwa}}" onclick="return confirm('Czy usunac?')">X</a>
+    </div>
+    {{/each}}
+</div>
 <hr>
-{{#each pliki}}
-<div class="plik">
-    <p>{{nazwa}}</p>
-    <a href="/Usun_plik?nazwa={{nazwa}}" onclick="return confirm('Czy usunac?')">X</a>
+<div class="pliki">
+    {{#each pliki}}
+    <div class="plik">
+        <p>{{nazwa}}</p>
+        <a href="/Usun_plik?nazwa={{nazwa}}" onclick="return confirm('Czy usunac?')">X</a>
+    </div>
+    {{/each}}
 </div>
-{{/each}}
-
 <script src="skryptyjs/dialog.js"></script>

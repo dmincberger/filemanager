@@ -141,14 +141,22 @@ app.listen(PORT, function () {
 })
 
 //////////////////////////////////////////////////////////////////////// CZESC DRUGA FILEMANAGER! /////////////////////////////////////////////////////////////////
-
-let pliki = []
-let foldery = []
+let sciezka = ""
 app.get("/Filemanager_two", function (req, res) {
+
+    //ja w kontekscie przesylam obecna sciezke wybrana w folderze juz
+    // strona mi da z powrotem w folderze, pelan sciezka ktore wczesniej wybralem + nazwe folderu
+
+    //nazwa juz zrobiona
+    //pelna sciezka, to powinien byc po prostu query["nazwa"]
+
+    if (req.query["nazwa"] != undefined) { // sprawdzam czy w ogole uzytkownik dal mi folder
+        sciezka = req.query["nazwa"] //jesli tak, pobieram nazwe katalogu do ktorego wchozde
+    }
     context = {}
     pliki = []
     foldery = []
-    const filepath = path.join(__dirname, "pliki")
+    const filepath = path.join(__dirname, "pliki", sciezka)
     fs.readdir(filepath, (err, files) => {
         if (err) throw err
         files.forEach(element => {
@@ -157,17 +165,22 @@ app.get("/Filemanager_two", function (req, res) {
                 if (stats.isFile()) {
                     stats["nazwa"] = element
                     stats["path"] = plik
+                    stats["sciezka"] = sciezka
                     pliki.push(stats)
                 } else if (stats.isDirectory()) {
                     stats["nazwa"] = element
                     stats["path"] = plik
+                    stats["sciezka"] = sciezka
                     foldery.push(stats)
                 }
             })
         });
+        let hierarchia = sciezka.split("/")
+        console.log(hierarchia);
         context = {
+            hierarchia, hierarchia,
             pliki: pliki,
-            foldery: foldery
+            foldery: foldery,
         }
         res.render("Filemanager_two.hbs", context)
     })
