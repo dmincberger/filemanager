@@ -3,6 +3,14 @@ img {
     height: 64px;
 }
 
+.wszystko_dwa {
+    width: 100vw;
+}
+
+.wszystkie_pliki {
+    width: 50vw;
+    display: flex;
+}
 
 .tabela {
     width: 100%;
@@ -45,7 +53,14 @@ th {
 
 .Usuntabele {
     height: 100vh;
-    width: 40vh;
+    width: 40vw;
+    background-color: lightgray;
+    text-align: center;
+}
+
+.Usuntabele_dwa {
+    height: 100vh;
+    width: 20vw;
     background-color: lightgray;
     text-align: center;
 }
@@ -68,6 +83,8 @@ a {
     background-color: aqua;
     margin-right: 20px;
     min-width: 50px;
+    width: 200px;
+    height: 200px;
 }
 
 .plik {

@@ -267,9 +267,40 @@ app.get('/Usun_plik', function (req, res) {
 app.get('/Usun_folder', function (req, res) {
     let nazwa = req.query["nazwa"]
     const filepath = path.join(__dirname, "pliki", sciezka, nazwa)
-    fs.rmdir(filepath, (err) => {
+    fs.rm(filepath, { recursive: true }, (err) => {
         if (err) throw err
         console.log("czas 1: " + new Date().getMilliseconds());
         res.redirect("/Filemanager_two")
     })
+})
+
+app.get('/Zmiana_nazwy', function (req, res) {
+    let nazwa = req.query["nazwa"]
+    let sciecha = req.query["sciezka"]
+    console.log(sciecha == "." ? "lol" : "nie");
+    if (sciecha == ".") {
+        console.log("trigger");
+        res.redirect("/Filemanager_two")
+    } else {
+        console.log("dalszy trigger");
+        let new_sciecha = sciecha.split("\\")
+        new_sciecha.pop()
+        new_sciecha.push(nazwa)
+        new_sciecha = new_sciecha.join("/")
+        let filepath_old = path.join(__dirname, "pliki", sciecha)
+        let filepath_new = path.join(__dirname, "pliki", new_sciecha)
+        if (!fs.existsSync(filepath_new)) {
+            fs.rename(filepath_old, filepath_new, (err) => {
+                if (err) console.log(err)
+                else {
+                    sciezka = new_sciecha
+                    res.redirect("/Filemanager_two")
+                }
+            })
+        }
+        else {
+            sciezka = new_sciecha
+            res.redirect("/Filemanager_two")
+        }
+    }
 })

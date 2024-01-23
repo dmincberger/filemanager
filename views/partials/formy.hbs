@@ -5,19 +5,30 @@
         <input type="text" name="nazwa"><br>
         <input type="hidden" name="sciezka" value="{{sciecha}}">
         <button type="submit" id="OK" formaction="/Tworzenie_pliku?nazwa=">OK</button>
-        <button id="Cancel">Cancel</button>
+        <button id="Cancel_plik" type="button" onclick="Stop_plik()">Cancel</button>
     </form>
 </dialog>
 
 <dialog id="folder_dialog">
-    <form method="GET">
+    <form method="GET" action="/Tworzenie_folderu?nazwa=">
         Nazwa nowego folderu w <br>
         <input type="text" name="nazwa"><br>
         <input type="hidden" name="sciezka" value="{{sciecha}}">
-        <button type="submit" id="OK" formaction="/Tworzenie_folderu?nazwa=">OK</button>
-        <button id="Cancel">Cancel</button>
+        <button type="submit" id="OK">OK</button>
+        <button id="Cancel_folder" type="button" onclick="Stop_folder()">Cancel</button>
     </form>
 </dialog>
+
+<dialog id="zmiana_dialog">
+    <form method="GET">
+        Zmiana nazwy folderu na <br>
+        <input type="text" name="nazwa"><br>
+        <input type="hidden" name="sciezka" value="{{sciecha}}">
+        <button type="submit" id="OK" formaction="/Zmiana_nazwy?nazwa=">OK</button>
+        <button id="Cancel_zmiana" type="button" onclick="Stop_zmiana()">Cancel</button>
+    </form>
+</dialog>
+
 
 <form enctype="multipart/form-data" enc method="POST" action="/Upload_two" class="uploadzik">
     <input type="file" multiple required accept="image/*" name="filesupload"><br>
