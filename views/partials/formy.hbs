@@ -1,8 +1,10 @@
+{{#each hidden}}
 <dialog id="file_dialog">
     <form method="GET">
         Nazwa nowego pliku w <br>
         <input type="text" name="nazwa"><br>
-        <button type="submit" id="OK" formaction="/Tworzenie_pliku">OK</button>
+        <input type="hidden" name="sciezka" value="{{sciecha}}">
+        <button type="submit" id="OK" formaction="/Tworzenie_pliku?nazwa=">OK</button>
         <button id="Cancel">Cancel</button>
     </form>
 </dialog>
@@ -11,12 +13,15 @@
     <form method="GET">
         Nazwa nowego folderu w <br>
         <input type="text" name="nazwa"><br>
-        <button type="submit" id="OK" formaction="/Tworzenie_folderu">OK</button>
+        <input type="hidden" name="sciezka" value="{{sciecha}}">
+        <button type="submit" id="OK" formaction="/Tworzenie_folderu?nazwa=">OK</button>
         <button id="Cancel">Cancel</button>
     </form>
 </dialog>
 
-        <form enctype="multipart/form-data" method="POST" action="/Upload_two" class="uploadzik">
-            <input type="file" multiple required accept="image/*" name="filesupload"><br>
-            <button class="upload_button" type="submit" name="przycisk">Upload</button>
-        </form>
+<form enctype="multipart/form-data" enc method="POST" action="/Upload_two" class="uploadzik">
+    <input type="file" multiple required accept="image/*" name="filesupload"><br>
+    <input type="hidden" name="sciezka" value="{{sciecha}}">
+    <button class="upload_button" type="submit" name="przycisk">Upload</button>
+</form>
+{{/each}}

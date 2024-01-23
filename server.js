@@ -5,6 +5,9 @@ app.use(express.static('static'))
 const path = require("path")
 const formidable = require('formidable');
 const hbs = require('express-handlebars');
+app.use(express.urlencoded({
+    extended: true
+}));
 const fs = require("fs")
 app.set('views', path.join(__dirname, 'views'));
 app.engine('hbs', hbs({
@@ -35,7 +38,7 @@ app.post('/Upload', function (req, res) {
     let form = formidable({});
     form.multiples = true
     form.keepExtensions = true
-
+    console.log(req.body);
     form.uploadDir = __dirname + '/static/upload/'
 
     form.parse(req, function (err, fields, files) {
@@ -143,7 +146,8 @@ app.listen(PORT, function () {
 //////////////////////////////////////////////////////////////////////// CZESC DRUGA FILEMANAGER! /////////////////////////////////////////////////////////////////
 let sciezka = ""
 app.get("/Filemanager_two", function (req, res) {
-
+    let funkcjonalna_sciezka = []
+    let funkcjonalna_czesc_sciezki = ""
     //ja w kontekscie przesylam obecna sciezke wybrana w folderze juz
     // strona mi da z powrotem w folderze, pelan sciezka ktore wczesniej wybralem + nazwe folderu
 
@@ -153,6 +157,7 @@ app.get("/Filemanager_two", function (req, res) {
     if (req.query["nazwa"] != undefined) { // sprawdzam czy w ogole uzytkownik dal mi folder
         sciezka = req.query["nazwa"] //jesli tak, pobieram nazwe katalogu do ktorego wchozde
     }
+    sciezka = sciezka.replace(/\\/g, "/")
     context = {}
     pliki = []
     foldery = []
@@ -176,9 +181,16 @@ app.get("/Filemanager_two", function (req, res) {
             })
         });
         let hierarchia = sciezka.split("/")
-        console.log(hierarchia);
+
+        for (let i = 0; i < hierarchia.length; i++) {
+            funkcjonalna_czesc_sciezki = path.join(funkcjonalna_czesc_sciezki, hierarchia[i])
+            funkcjonalna_sciezka.push({ czesc_sciezki: funkcjonalna_czesc_sciezki, nazwa_sciezki: hierarchia[i] })
+        }
+
         context = {
+            hidden: [{ sciecha: funkcjonalna_czesc_sciezki }],
             hierarchia, hierarchia,
+            sciezki: funkcjonalna_sciezka,
             pliki: pliki,
             foldery: foldery,
         }
@@ -187,12 +199,15 @@ app.get("/Filemanager_two", function (req, res) {
 })
 
 app.get("/Tworzenie_pliku", function (req, res) {
+    console.log(req.query["sciezka"]);
     let nazwa_pliku = req.query["nazwa"]
-    let filepath = path.join(__dirname, "pliki", `${nazwa_pliku}`)
+    let sciecha = req.query["sciezka"]
+    let filepath = path.join(__dirname, "pliki", sciecha, nazwa_pliku)
     if (fs.existsSync(filepath)) {
         let now = new Date()
         let currtime = now.getTime()
-        filepath = path.join(__dirname, "pliki", `Kopia_${nazwa_pliku}_${currtime}`)
+        filepath = path.join(__dirname, "pliki", sciecha, `Kopia_${nazwa_pliku}_${currtime}`)
+        sciezka = sciecha
     }
     fs.writeFile(filepath, "tekst do wpisania", (err) => {
         if (err) throw err
@@ -201,14 +216,17 @@ app.get("/Tworzenie_pliku", function (req, res) {
 })
 
 app.get("/Tworzenie_folderu", function (req, res) {
+    console.log(req.query);
     let nazwa_folderu = req.query["nazwa"]
-    let filepath = path.join(__dirname, "pliki", `${nazwa_folderu}`)
+    let sciecha = req.query["sciezka"]
+    let filepath = path.join(__dirname, "pliki", sciecha, nazwa_folderu)
     if (fs.existsSync(filepath)) {
         let now = new Date()
         let currtime = now.getTime()
-        filepath = path.join(__dirname, "pliki", `Kopia_${nazwa_folderu}_${currtime}`)
+        filepath = path.join(__dirname, "pliki", sciecha, `Kopia_${nazwa_folderu}_${currtime}`)
     }
     fs.mkdir(filepath, (err) => {
+        sciezka = sciecha
         if (err) throw err
         res.redirect("/Filemanager_two")
     })
@@ -220,9 +238,12 @@ app.post("/Upload_two", function (req, res) {
     form.keepExtensions = true
     let now = new Date()
     let currtime = now.getTime()
-    const filepath = path.join(__dirname, "pliki")
+    let filepath = path.join(__dirname, "pliki", sciezka,)
     form.uploadDir = filepath
     form.on("fileBegin", function (name, file) {
+        let template = file.path.split("\\")
+        template.pop()
+        filepath = template.join("\\")
         file.path = path.join(filepath, `${file.name}`)
         if (fs.existsSync(file.path)) {
             file.path = path.join(__dirname, "pliki", `kopia_${file.name}_${currtime}`)
@@ -235,7 +256,7 @@ app.post("/Upload_two", function (req, res) {
 
 app.get('/Usun_plik', function (req, res) {
     let nazwa = req.query["nazwa"]
-    const filepath = path.join(__dirname, "pliki", `${nazwa}`)
+    const filepath = path.join(__dirname, "pliki", sciezka, nazwa)
     fs.unlink(filepath, (err) => {
         if (err) throw err
         console.log("czas 1: " + new Date().getMilliseconds());
@@ -245,7 +266,7 @@ app.get('/Usun_plik', function (req, res) {
 
 app.get('/Usun_folder', function (req, res) {
     let nazwa = req.query["nazwa"]
-    const filepath = path.join(__dirname, "pliki", `${nazwa}`)
+    const filepath = path.join(__dirname, "pliki", sciezka, nazwa)
     fs.rmdir(filepath, (err) => {
         if (err) throw err
         console.log("czas 1: " + new Date().getMilliseconds());

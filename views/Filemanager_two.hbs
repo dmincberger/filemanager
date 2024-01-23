@@ -1,9 +1,9 @@
 {{> formy}}
 {{> przyciski}}
 <div class="hierarchia">
-    {{#each hierarchia}}
-    {{!-- <p>{{obecny_folder}}</p> --}}
-    <p>{{this}}</p>
+    <a href="/Filemanager_two?nazwa=">Pliki</a>
+    {{#each sciezki}}
+    <a href="/Filemanager_two?nazwa={{czesc_sciezki}}">{{nazwa_sciezki}}</a>
     {{/each}}
 </div>
 <div class="foldery">
