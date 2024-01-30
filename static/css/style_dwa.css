@@ -10,6 +10,7 @@ nav {
     padding: 10px;
     text-align: center;
     width: 100%;
+    height: 80px;
 }
 
 dialog {
@@ -27,7 +28,7 @@ nav a {
     display: flex;
     flex-direction: column;
     width: 300px;
-    height: 500px;
+    height: calc(100vh - 80px);
     background-color: red;
 }
 
@@ -102,17 +103,27 @@ nav a {
 }
 
 .line_counter {
-    width: 40px;
-    height: 800px;
+    width: 30px;
+    height: fit-content;
+    max-height: 721px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    font-size: 1.5em;
 }
 
-textarea {
-    height: 400px;
-    width: 1179px;
+#textarea {
+    height: 721px;
+    max-height: 740px;
+    width: calc(100vw - 300px);
+    font-size: 1.5em;
+    resize: none;
+    scroll-behavior: auto;
+    overflow-y: hidden;
 }
 
 .edit_area {
-    background-color: rebeccapurple;
     width: fit-content;
     height: fit-content;
     display: flex;

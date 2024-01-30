@@ -343,3 +343,7 @@ app.get("/showfile", function (req, res) {
 
     res.render("showfile.hbs", context)
 })
+
+app.get("/zapisz_plik", function (req, res) {
+    console.log(req.query);
+})
