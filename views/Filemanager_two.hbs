@@ -1,7 +1,8 @@
+{{#if wyswietlac_pliki}}
 <div class="wszystko_dwa">
-    {{> formy}}
     <div class="Usuntabele_dwa">
         {{> przyciski}}
+        {{> formy}}
     </div>
     <div class="wszystkie_pliki">
         <div class="hierarchia">
@@ -22,12 +23,16 @@
         <div class="pliki">
             {{#each pliki}}
             <div class="plik">
-                <p>{{nazwa}}</p>
+                <a href="/showfile?nazwa={{sciezka}}/{{nazwa}}">{{nazwa}}</a>
                 <a href="/Usun_plik?nazwa={{nazwa}}" onclick="return confirm('Czy usunac?')">X</a>
             </div>
             {{/each}}
         </div>
     </div>
 </div>
+{{else}}
+<p>test</p>
+{{/if}}
+
 
 <script src="skryptyjs/dialog.js"></script>

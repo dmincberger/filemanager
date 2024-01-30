@@ -145,7 +145,21 @@ app.listen(PORT, function () {
 
 //////////////////////////////////////////////////////////////////////// CZESC DRUGA FILEMANAGER! /////////////////////////////////////////////////////////////////
 let sciezka = ""
+let przykladowe_pliki = {}
+let przykladowa_sciezka = path.join(__dirname, "static", "file_templates")
+fs.readdir(przykladowa_sciezka, (err, files) => {
+    for (const f of files) {
+        let przykladowe_rozszerzenie = f.split(".").shift()
+        let sciezka_do_przykladu = path.join(przykladowa_sciezka, f)
+        fs.readFile(sciezka_do_przykladu, 'utf-8', (err, stats) => {
+            przykladowe_pliki[przykladowe_rozszerzenie] = stats
+        })
+    }
+})
+
+
 app.get("/Filemanager_two", function (req, res) {
+
     let funkcjonalna_sciezka = []
     let funkcjonalna_czesc_sciezki = ""
     //ja w kontekscie przesylam obecna sciezke wybrana w folderze juz
@@ -193,14 +207,21 @@ app.get("/Filemanager_two", function (req, res) {
             sciezki: funkcjonalna_sciezka,
             pliki: pliki,
             foldery: foldery,
+            wyswietlac_pliki: "yes"
         }
         res.render("Filemanager_two.hbs", context)
     })
 })
 
 app.get("/Tworzenie_pliku", function (req, res) {
-    console.log(req.query["sciezka"]);
+    let tekst_pliku = ""
     let nazwa_pliku = req.query["nazwa"]
+    console.log(nazwa_pliku);
+    let rozszerzenie = nazwa_pliku.split(".").pop()
+    if (przykladowe_pliki.hasOwnProperty(rozszerzenie)) {
+        tekst_pliku = przykladowe_pliki[rozszerzenie]
+    }
+    console.log(`TO JEST ROZSZERZENIE: ${rozszerzenie}`);
     let sciecha = req.query["sciezka"]
     let filepath = path.join(__dirname, "pliki", sciecha, nazwa_pliku)
     if (fs.existsSync(filepath)) {
@@ -209,10 +230,8 @@ app.get("/Tworzenie_pliku", function (req, res) {
         filepath = path.join(__dirname, "pliki", sciecha, `Kopia_${nazwa_pliku}_${currtime}`)
         sciezka = sciecha
     }
-    fs.writeFile(filepath, "tekst do wpisania", (err) => {
-        if (err) throw err
-        res.redirect("/Filemanager_two")
-    })
+    fs.writeFileSync(filepath, tekst_pliku, { encoding: 'utf-8', flag: "w" })
+    res.redirect("/Filemanager_two")
 })
 
 app.get("/Tworzenie_folderu", function (req, res) {
@@ -303,4 +322,24 @@ app.get('/Zmiana_nazwy', function (req, res) {
             res.redirect("/Filemanager_two")
         }
     }
+})
+
+app.get("/showfile", function (req, res) {
+    let nazwa_pliku = req.query["nazwa"].split("/").pop()
+    let sciezka = path.join(__dirname, "pliki", req.query["nazwa"])
+    console.log(sciezka);
+    let zawartosc_pliku = fs.readFileSync(sciezka, { encoding: 'utf-8' })
+    console.log(`TO JEST ZAWERTOSC PLIKU: `, zawartosc_pliku);
+    /*
+    Co potrzeba?
+    Zawartość pliku - na pewno
+    nazwa pliku - pobrac red query po prostu, ostatni slash to nazwa reszta to sciezka.
+    w sumie server_side, to jest tyle w /showfile
+    */
+    let context = {
+        wyswietlac_pliki: "",
+        zawartosc_pliku: zawartosc_pliku,
+    }
+
+    res.render("showfile.hbs", context)
 })
