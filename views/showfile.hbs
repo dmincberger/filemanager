@@ -1,7 +1,10 @@
 <div class="wszystko">
-    <div class="Usuntabele_dwa">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Error, cupiditate officia?
-        Molestias eius quis veniam sed. Quam unde aliquid delectus! Nostrum veritatis corporis accusamus doloremque
-        fugit at voluptates nihil vel.</div>
+    <p id="sciezka" style="display: none;">{{sciezka}}</p>
+    <div class="Usuntabele_dwa">
+        <button id="font_mniejszy" onclick="Font_mniejszy()">font - </button>
+        <button id="kolory">kolory </button>
+        <button id="font_wiekszy" onclick="Font_wiekszy()">font + </button>
+    </div>
     <div class="edit_area">
         <div class="nazwa_pliku"></div>
         <div class="line_and_text">
@@ -10,11 +13,8 @@
                 <textarea id="textarea">{{zawartosc_pliku}}</textarea>
             </div>
         </div>
-
-        <button name="zawartosc" onclick="Test()">Zapisz zmiany w pliku</button>
-
+        <button id="zawartosc" onclick="Zapis()">Zapisz zmiany w pliku</button>
     </div>
 
 </div>
-
 <script src="skryptyjs/textarea.js"></script>

@@ -103,14 +103,14 @@ nav a {
 }
 
 .line_counter {
-    width: 30px;
+    min-width: 20px;
+    max-width: 40px;
     height: fit-content;
     max-height: 721px;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-between;
-    font-size: 1.5em;
 }
 
 #textarea {

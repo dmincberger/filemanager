@@ -5,6 +5,7 @@ app.use(express.static('static'))
 const path = require("path")
 const formidable = require('formidable');
 const hbs = require('express-handlebars');
+app.use(express.json());
 app.use(express.urlencoded({
     extended: true
 }));
@@ -329,21 +330,52 @@ app.get("/showfile", function (req, res) {
     let sciezka = path.join(__dirname, "pliki", req.query["nazwa"])
     console.log(sciezka);
     let zawartosc_pliku = fs.readFileSync(sciezka, { encoding: 'utf-8' })
-    console.log(`TO JEST ZAWERTOSC PLIKU: `, zawartosc_pliku);
-    /*
-    Co potrzeba?
-    Zawartość pliku - na pewno
-    nazwa pliku - pobrac red query po prostu, ostatni slash to nazwa reszta to sciezka.
-    w sumie server_side, to jest tyle w /showfile
-    */
+
     let context = {
         wyswietlac_pliki: "",
         zawartosc_pliku: zawartosc_pliku,
+        sciezka: sciezka
     }
 
     res.render("showfile.hbs", context)
 })
 
-app.get("/zapisz_plik", function (req, res) {
-    console.log(req.query);
+app.post("/zapisz_plik", function (req, res) {
+    res.header("content-type", "application/json")
+    console.log(req.body["sciezka"])
+    let tekst = JSON.parse(req.body["tekst"])
+    fs.writeFile(req.body["sciezka"], tekst, (err) => {
+        if (err) throw err
+        res.send(JSON.stringify("Plik zapisano"));
+    })
+})
+
+app.post("/mniejszy_font", function (req, res) {
+    let sciezka = path.join(__dirname, "static", "css", "style_config.json")
+    let zawartosc_styli = fs.readFileSync(sciezka, { encoding: 'utf-8' })
+    zawartosc_styli = JSON.parse(zawartosc_styli)
+    if (zawartosc_styli['font-size'] > 1.1) {
+        zawartosc_styli['font-size'] -= 0.2
+        fs.writeFileSync(sciezka, JSON.stringify(zawartosc_styli), { encoding: 'utf-8', flag: "w" })
+    }
+    res.send(JSON.stringify(zawartosc_styli));
+})
+
+app.post("/wiekszy_font", function (req, res) {
+    let sciezka = path.join(__dirname, "static", "css", "style_config.json")
+    let zawartosc_styli = fs.readFileSync(sciezka, { encoding: 'utf-8' })
+    zawartosc_styli = JSON.parse(zawartosc_styli)
+    if (zawartosc_styli['font-size'] < 1.9) {
+        zawartosc_styli['font-size'] += 0.2
+        fs.writeFileSync(sciezka, JSON.stringify(zawartosc_styli), { encoding: 'utf-8', flag: "w" })
+    }
+    res.send(JSON.stringify(zawartosc_styli));
+})
+
+app.post("/get_style", function (req, res) {
+    let tescik = new Date()
+    console.log("POSZEDL FETCH O ", tescik.getMilliseconds());
+    let sciezka = path.join(__dirname, "static", "css", "style_config.json")
+    let zawartosc_styli = fs.readFileSync(sciezka, { encoding: 'utf-8' })
+    res.send(JSON.stringify(zawartosc_styli));
 })
