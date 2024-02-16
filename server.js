@@ -5,20 +5,16 @@ app.use(express.static('static'))
 const path = require("path")
 const formidable = require('formidable');
 const hbs = require('express-handlebars');
+app.set(express.static(__dirname + '/pliki'));
 app.use(express.json());
 app.use(express.urlencoded({
     extended: true
 }));
 const validate = require("isimagevalidator");
-validate.isImage(filePath)
 const fs = require("fs")
-const { log } = require("util")
 app.set('views', path.join(__dirname, 'views'));
-app.engine('hbs', hbs({
-    defaultLayout: 'main.hbs', extname: '.hbs',
-    partialsDir: "views/partials",
-}),
-);
+app.engine('hbs', hbs.engine({ extname: 'hbs', defualtLayout: 'layout', layoutsDir: __dirname + '/views/layouts', partialsDir: __dirname + '/views/partials/' }));
+app.use("/pliki", express.static(path.join(__dirname, "/pliki")));
 
 
 
@@ -43,7 +39,7 @@ app.post('/Upload', function (req, res) {
     form.multiples = true
     form.keepExtensions = true
     console.log(req.body);
-    form.uploadDir = __dirname + '/static/upload/'
+    form.uploadDir = '/static/upload/'
 
     form.parse(req, function (err, fields, files) {
         let now = new Date();
@@ -150,7 +146,10 @@ app.listen(PORT, function () {
 //////////////////////////////////////////////////////////////////////// CZESC DRUGA FILEMANAGER! /////////////////////////////////////////////////////////////////
 let sciezka = ""
 let przykladowe_pliki = {}
-let przykladowa_sciezka = path.join(__dirname, "static", "file_templates")
+let rozszerzenie_obrazow = [
+    "png", "jpg", "jpeg", "psd", "raw", "bmp", "PSD"
+]
+let przykladowa_sciezka = path.join("static", "file_templates")
 fs.readdir(przykladowa_sciezka, (err, files) => {
     for (const f of files) {
         let przykladowe_rozszerzenie = f.split(".").shift()
@@ -179,7 +178,7 @@ app.get("/Filemanager_two", function (req, res) {
     context = {}
     pliki = []
     foldery = []
-    const filepath = path.join(__dirname, "pliki", sciezka)
+    const filepath = path.join("pliki", sciezka)
     fs.readdir(filepath, (err, files) => {
         if (err) throw err
         files.forEach(element => {
@@ -227,11 +226,11 @@ app.get("/Tworzenie_pliku", function (req, res) {
     }
     console.log(`TO JEST ROZSZERZENIE: ${rozszerzenie}`);
     let sciecha = req.query["sciezka"]
-    let filepath = path.join(__dirname, "pliki", sciecha, nazwa_pliku)
+    let filepath = path.join("pliki", sciecha, nazwa_pliku)
     if (fs.existsSync(filepath)) {
         let now = new Date()
         let currtime = now.getTime()
-        filepath = path.join(__dirname, "pliki", sciecha, `Kopia_${nazwa_pliku}_${currtime}`)
+        filepath = path.join("pliki", sciecha, `Kopia_${nazwa_pliku}_${currtime}`)
         sciezka = sciecha
     }
     fs.writeFileSync(filepath, tekst_pliku, { encoding: 'utf-8', flag: "w" })
@@ -242,11 +241,11 @@ app.get("/Tworzenie_folderu", function (req, res) {
     console.log(req.query);
     let nazwa_folderu = req.query["nazwa"]
     let sciecha = req.query["sciezka"]
-    let filepath = path.join(__dirname, "pliki", sciecha, nazwa_folderu)
+    let filepath = path.join("pliki", sciecha, nazwa_folderu)
     if (fs.existsSync(filepath)) {
         let now = new Date()
         let currtime = now.getTime()
-        filepath = path.join(__dirname, "pliki", sciecha, `Kopia_${nazwa_folderu}_${currtime}`)
+        filepath = path.join("pliki", sciecha, `Kopia_${nazwa_folderu}_${currtime}`)
     }
     fs.mkdir(filepath, (err) => {
         sciezka = sciecha
@@ -261,7 +260,7 @@ app.post("/Upload_two", function (req, res) {
     form.keepExtensions = true
     let now = new Date()
     let currtime = now.getTime()
-    let filepath = path.join(__dirname, "pliki", sciezka,)
+    let filepath = path.join("pliki", sciezka,)
     form.uploadDir = filepath
     form.on("fileBegin", function (name, file) {
         let template = file.path.split("\\")
@@ -270,7 +269,7 @@ app.post("/Upload_two", function (req, res) {
         filepath = template.join("\\")
         file.path = path.join(filepath, `${file.name}`)
         if (fs.existsSync(file.path)) {
-            file.path = path.join(__dirname, "pliki", `kopia_${file.name}_${currtime}`)
+            file.path = path.join("pliki", `kopia_${file.name}_${currtime}`)
         }
     })
     form.parse(req, function (err, fields, files) {
@@ -280,7 +279,7 @@ app.post("/Upload_two", function (req, res) {
 
 app.get('/Usun_plik', function (req, res) {
     let nazwa = req.query["nazwa"]
-    const filepath = path.join(__dirname, "pliki", sciezka, nazwa)
+    const filepath = path.join("pliki", sciezka, nazwa)
     fs.unlink(filepath, (err) => {
         if (err) throw err
         console.log("czas 1: " + new Date().getMilliseconds());
@@ -290,7 +289,7 @@ app.get('/Usun_plik', function (req, res) {
 
 app.get('/Usun_folder', function (req, res) {
     let nazwa = req.query["nazwa"]
-    const filepath = path.join(__dirname, "pliki", sciezka, nazwa)
+    const filepath = path.join("pliki", sciezka, nazwa)
     fs.rm(filepath, { recursive: true }, (err) => {
         if (err) throw err
         console.log("czas 1: " + new Date().getMilliseconds());
@@ -311,8 +310,8 @@ app.get('/Zmiana_nazwy', function (req, res) {
         new_sciecha.pop()
         new_sciecha.push(nazwa)
         new_sciecha = new_sciecha.join("/")
-        let filepath_old = path.join(__dirname, "pliki", sciecha)
-        let filepath_new = path.join(__dirname, "pliki", new_sciecha)
+        let filepath_old = path.join("pliki", sciecha)
+        let filepath_new = path.join("pliki", new_sciecha)
         if (!fs.existsSync(filepath_new)) {
             fs.rename(filepath_old, filepath_new, (err) => {
                 if (err) console.log(err)
@@ -330,19 +329,34 @@ app.get('/Zmiana_nazwy', function (req, res) {
 })
 
 app.get("/showfile", function (req, res) {
-    console.log(req.query);
+    let obraz = false
+    let effects = [
+        { name: "grayscale" },
+        { name: "invert" },
+        { name: "sepia" }
+    ]
+
     let nazwa_pliku = req.query["nazwa"].split("/").pop()
     let rozszerzenie = nazwa_pliku.split(".").pop()
-    let sciezka = path.join(__dirname, "pliki", req.query["nazwa"])
+
+    let sciezka = path.join("pliki", req.query["nazwa"])
+    if (rozszerzenie_obrazow.includes(rozszerzenie)) {
+        sciezka = sciezka.replace(/\\/g, '/');
+        obraz = true
+        effects.forEach((element) => {
+            element["sciezka"] = sciezka
+        })
+    }
     console.log(sciezka);
     let zawartosc_pliku = fs.readFileSync(sciezka, { encoding: 'utf-8' })
-
     let context = {
         wyswietlac_pliki: "",
         zawartosc_pliku: zawartosc_pliku,
-        sciezka: sciezka
+        sciezka: sciezka,
+        obraz: obraz,
+        effects: effects
     }
-
+    console.log(sciezka);
     res.render("showfile.hbs", context)
 })
 
@@ -357,7 +371,7 @@ app.post("/zapisz_plik", function (req, res) {
 })
 
 app.post("/mniejszy_font", function (req, res) {
-    let sciezka = path.join(__dirname, "static", "css", "style_config.json")
+    let sciezka = path.join("static", "css", "style_config.json")
     let zawartosc_styli = fs.readFileSync(sciezka, { encoding: 'utf-8' })
     zawartosc_styli = JSON.parse(zawartosc_styli)
     if (zawartosc_styli['font-size'] > 1.1) {
@@ -368,7 +382,7 @@ app.post("/mniejszy_font", function (req, res) {
 })
 
 app.post("/wiekszy_font", function (req, res) {
-    let sciezka = path.join(__dirname, "static", "css", "style_config.json")
+    let sciezka = path.join("static", "css", "style_config.json")
     let zawartosc_styli = fs.readFileSync(sciezka, { encoding: 'utf-8' })
     zawartosc_styli = JSON.parse(zawartosc_styli)
     if (zawartosc_styli['font-size'] < 1.9) {
@@ -382,7 +396,7 @@ indeks = 0
 app.post("/get_style", function (req, res) {
     let tescik = new Date()
     console.log("POSZEDL FETCH O ", tescik.getMilliseconds());
-    let sciezka = path.join(__dirname, "static", "css", "style_config.json")
+    let sciezka = path.join("static", "css", "style_config.json")
     let zawartosc_styli = fs.readFileSync(sciezka, { encoding: 'utf-8' })
     zawartosc_styli_json = JSON.parse(zawartosc_styli)
     let kolor = JSON.stringify(zawartosc_styli_json["color"][indeks])
@@ -397,7 +411,7 @@ app.post("/change_style", function (req, res) {
     res.header("content-type", "application/json")
     let tescik = new Date()
     console.log("POSZEDL FETCH O ", tescik.getMilliseconds());
-    let sciezka = path.join(__dirname, "static", "css", "style_config.json")
+    let sciezka = path.join("static", "css", "style_config.json")
     let zawartosc_styli = fs.readFileSync(sciezka, { encoding: 'utf-8' })
     zawartosc_styli_json = JSON.parse(zawartosc_styli)
     indeks = zawartosc_styli_json["color"].indexOf(req.body["RGB"]) + 1

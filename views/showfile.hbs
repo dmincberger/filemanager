@@ -1,3 +1,4 @@
+{{#unless obraz}}
 <div class="wszystko">
     <p id="sciezka" style="display: none;">{{sciezka}}</p>
     <div class="Usuntabele_dwa">
@@ -25,6 +26,15 @@
         </div>
         <button id="zawartosc" onclick="Zapis()">Zapisz zmiany w pliku</button>
     </div>
-
 </div>
 <script src="skryptyjs/textarea.js"></script>
+{{else}}
+<div id="panel">
+    {{#each effects}}
+    <div style="background-image:url('{{sciezka}}');filter:{{name}}(100%)">
+        <p>fewko</p>
+    </div>
+    {{/each}}
+</div>
+
+{{/unless}}

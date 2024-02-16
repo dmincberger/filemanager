@@ -135,3 +135,7 @@ nav a {
     display: flex;
     flex-direction: row;
 }
+
+#panel {
+    width: fit-content;
+}

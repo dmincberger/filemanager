@@ -1,5 +1,3 @@
-
-
 function load() {
     let line_counter = document.getElementsByClassName("line_counter")[0]
     let text_area = document.getElementById("textarea")
