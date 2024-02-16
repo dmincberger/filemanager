@@ -2,8 +2,18 @@
     <p id="sciezka" style="display: none;">{{sciezka}}</p>
     <div class="Usuntabele_dwa">
         <button id="font_mniejszy" onclick="Font_mniejszy()">font - </button>
-        <button id="kolory">kolory </button>
+        <button id="kolory" onclick="Zmiana_koloru()">kolory </button>
         <button id="font_wiekszy" onclick="Font_wiekszy()">font + </button>
+        <button id="zmiana_nazwy" onclick="Zmiana_nazwy()">Zmien nazwe</button>
+        <dialog id="zmiana_dialog_plik">
+            <form method="GET">
+                Zmiana nazwy pliku na <br>
+                <input type="text" name="nazwa"><br>
+                <input type="hidden" name="sciezka" value="{{sciezka}}">
+                <button type="submit" id="OK" formaction="/Zmiana_nazwy_plik?nazwa={{sciezka}}">OK</button>
+                <button id="Cancel_zmiana_plik" type="button" onclick="Stop_zmiana_plik()">Cancel</button>
+            </form>
+        </dialog>
     </div>
     <div class="edit_area">
         <div class="nazwa_pliku"></div>

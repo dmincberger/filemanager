@@ -9,7 +9,10 @@ app.use(express.json());
 app.use(express.urlencoded({
     extended: true
 }));
+const validate = require("isimagevalidator");
+validate.isImage(filePath)
 const fs = require("fs")
+const { log } = require("util")
 app.set('views', path.join(__dirname, 'views'));
 app.engine('hbs', hbs({
     defaultLayout: 'main.hbs', extname: '.hbs',
@@ -263,6 +266,7 @@ app.post("/Upload_two", function (req, res) {
     form.on("fileBegin", function (name, file) {
         let template = file.path.split("\\")
         template.pop()
+        console.log(file.mimetype);
         filepath = template.join("\\")
         file.path = path.join(filepath, `${file.name}`)
         if (fs.existsSync(file.path)) {
@@ -326,7 +330,9 @@ app.get('/Zmiana_nazwy', function (req, res) {
 })
 
 app.get("/showfile", function (req, res) {
+    console.log(req.query);
     let nazwa_pliku = req.query["nazwa"].split("/").pop()
+    let rozszerzenie = nazwa_pliku.split(".").pop()
     let sciezka = path.join(__dirname, "pliki", req.query["nazwa"])
     console.log(sciezka);
     let zawartosc_pliku = fs.readFileSync(sciezka, { encoding: 'utf-8' })
@@ -371,11 +377,57 @@ app.post("/wiekszy_font", function (req, res) {
     }
     res.send(JSON.stringify(zawartosc_styli));
 })
+indeks = 0
 
 app.post("/get_style", function (req, res) {
     let tescik = new Date()
     console.log("POSZEDL FETCH O ", tescik.getMilliseconds());
     let sciezka = path.join(__dirname, "static", "css", "style_config.json")
     let zawartosc_styli = fs.readFileSync(sciezka, { encoding: 'utf-8' })
-    res.send(JSON.stringify(zawartosc_styli));
+    zawartosc_styli_json = JSON.parse(zawartosc_styli)
+    let kolor = JSON.stringify(zawartosc_styli_json["color"][indeks])
+    let tlo = JSON.stringify(zawartosc_styli_json["background-color"][indeks])
+    let font = JSON.stringify(zawartosc_styli_json["font-size"])
+    let styl = { kolor: kolor, tlo: tlo, font: font }
+    console.log(indeks);
+    res.send(JSON.stringify(styl));
+})
+
+app.post("/change_style", function (req, res) {
+    res.header("content-type", "application/json")
+    let tescik = new Date()
+    console.log("POSZEDL FETCH O ", tescik.getMilliseconds());
+    let sciezka = path.join(__dirname, "static", "css", "style_config.json")
+    let zawartosc_styli = fs.readFileSync(sciezka, { encoding: 'utf-8' })
+    zawartosc_styli_json = JSON.parse(zawartosc_styli)
+    indeks = zawartosc_styli_json["color"].indexOf(req.body["RGB"]) + 1
+    if (indeks == zawartosc_styli_json["color"].length) {
+        indeks = 0
+    }
+    let kolor = JSON.stringify(zawartosc_styli_json["color"][indeks])
+    let tlo = JSON.stringify(zawartosc_styli_json["background-color"][indeks])
+    let styl = { kolor: kolor, tlo: tlo, indeks: indeks }
+    res.send(JSON.stringify(styl))
+})
+
+app.get('/Zmiana_nazwy_plik', function (req, res) {
+    let nazwa = req.query["nazwa"]
+    let sciecha = req.query["sciezka"]
+    let new_sciecha = sciecha.split("\\")
+    new_sciecha.pop()
+    new_sciecha.push(nazwa)
+    new_sciecha = new_sciecha.join("/")
+    let przeslanie = new_sciecha.split("pliki")[1]
+    console.log(przeslanie);
+    if (!fs.existsSync(new_sciecha)) {
+        fs.rename(sciecha, new_sciecha, (err) => {
+            if (err) console.log(err)
+            else {
+                res.redirect("/showfile?nazwa=" + przeslanie)
+            }
+        })
+    }
+    else {
+        res.redirect("/Filemanager_two")
+    }
 })
