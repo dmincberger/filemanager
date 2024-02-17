@@ -2,18 +2,17 @@ const express = require("express")
 const app = express()
 const PORT = 3000
 app.use(express.static('static'))
+const PNG = require('pngjs').PNG;
 const path = require("path")
+const { toPng } = require('@rgba-image/png')
 const formidable = require('formidable');
 const hbs = require('express-handlebars');
 app.set(express.static(__dirname + '/pliki'));
-app.use(express.json());
-app.use(express.urlencoded({
-    extended: true
-}));
-const validate = require("isimagevalidator");
+app.use(express.json({ limit: '500mb' }));
+app.use(express.urlencoded({ extended: true, limit: '500mb' }));
 const fs = require("fs")
 app.set('views', path.join(__dirname, 'views'));
-app.engine('hbs', hbs.engine({ extname: 'hbs', defualtLayout: 'layout', layoutsDir: __dirname + '/views/layouts', partialsDir: __dirname + '/views/partials/' }));
+app.engine('hbs', hbs({ defaultLayout: 'main.hbs', extname: '.hbs', partialsDir: "views/partials", }),);
 app.use("/pliki", express.static(path.join(__dirname, "/pliki")));
 
 
@@ -147,7 +146,7 @@ app.listen(PORT, function () {
 let sciezka = ""
 let przykladowe_pliki = {}
 let rozszerzenie_obrazow = [
-    "png", "jpg", "jpeg", "psd", "raw", "bmp", "PSD"
+    "png", "jpg", "jpeg", "psd", "raw", "bmp", "PSD", "gif"
 ]
 let przykladowa_sciezka = path.join("static", "file_templates")
 fs.readdir(przykladowa_sciezka, (err, files) => {
@@ -230,7 +229,7 @@ app.get("/Tworzenie_pliku", function (req, res) {
     if (fs.existsSync(filepath)) {
         let now = new Date()
         let currtime = now.getTime()
-        filepath = path.join("pliki", sciecha, `Kopia_${nazwa_pliku}_${currtime}`)
+        filepath = path.join("pliki", sciecha, `Kopia_${currtime}_${nazwa_pliku}`)
         sciezka = sciecha
     }
     fs.writeFileSync(filepath, tekst_pliku, { encoding: 'utf-8', flag: "w" })
@@ -269,7 +268,7 @@ app.post("/Upload_two", function (req, res) {
         filepath = template.join("\\")
         file.path = path.join(filepath, `${file.name}`)
         if (fs.existsSync(file.path)) {
-            file.path = path.join("pliki", `kopia_${file.name}_${currtime}`)
+            file.path = path.join("pliki", `kopia_${currtime}_${file.name}`)
         }
     })
     form.parse(req, function (err, fields, files) {
@@ -333,7 +332,8 @@ app.get("/showfile", function (req, res) {
     let effects = [
         { name: "grayscale" },
         { name: "invert" },
-        { name: "sepia" }
+        { name: "sepia" },
+        { name: "" }
     ]
 
     let nazwa_pliku = req.query["nazwa"].split("/").pop()
@@ -444,4 +444,22 @@ app.get('/Zmiana_nazwy_plik', function (req, res) {
     else {
         res.redirect("/Filemanager_two")
     }
+})
+
+app.post('/saveimage', function (req, res) {
+    let data = Object.values(req.body["data"]['data']) // pobieram poszczegolne wartosci RGBA kazdego pikselu
+    let sciezka = req.body["sciezka"] // sciezka do zapisu
+    let szerokosc = parseInt(req.body["szerokosc"])
+    let wysokosc = parseInt(req.body["wysokosc"])
+    const png = new PNG({ width: szerokosc, height: wysokosc, inputHasAlpha: true }) //tworze w pewnym sensie puste płótno o wymiarach i mowie ze jest kanal alpha czyli przezroczystosc
+    png.data = Buffer.from(data) //tworze sekwencje bajtów z podanych danych
+    const fileStream = fs.createWriteStream(sciezka);
+    png.pack().pipe(fileStream) // png.pack() przetwarza dane z png.data zeby zostaly zakodowane w format png, pipe po prostu wynik png.pack wysyla w filestream, ktory wprowadza dane do sciezki ktora wybralismy wczesniej
+    fileStream.on('finish', () => {
+        console.log('Udalo sie zapis obraz!');
+    });
+
+    fileStream.on('error', (err) => {
+        console.error('przy zapisie wystapil blad!', err);
+    });
 })

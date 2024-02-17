@@ -29,12 +29,26 @@
 </div>
 <script src="skryptyjs/textarea.js"></script>
 {{else}}
+<p id="sciezka" style="display: none;">{{sciezka}}</p>
+
 <div id="panel">
     {{#each effects}}
+    {{#if name}}
     <div style="background-image:url('{{sciezka}}');filter:{{name}}(100%)">
         <p>fewko</p>
     </div>
+    {{else}}
+    <div style="background-image:url('{{sciezka}}');filter:none">
+        <p>fewko</p>
+    </div>
+    {{/if}}
     {{/each}}
-</div>
 
+</div>
+<div id="divcanvas" style="background-image:url('{{sciezka}}');">
+
+</div>
+<button id="revealpanel">Filter</button>
+<button id="saveimage">SAVE IMAGE</button>
+<script src="skryptyjs/obraz.js"></script>
 {{/unless}}
