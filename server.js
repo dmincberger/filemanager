@@ -425,6 +425,7 @@ app.post("/change_style", function (req, res) {
 })
 
 app.get('/Zmiana_nazwy_plik', function (req, res) {
+    console.log(req.query);
     let nazwa = req.query["nazwa"]
     let sciecha = req.query["sciezka"]
     let new_sciecha = sciecha.split("\\")
@@ -448,6 +449,7 @@ app.get('/Zmiana_nazwy_plik', function (req, res) {
 
 app.post('/saveimage', function (req, res) {
     let data = Object.values(req.body["data"]['data']) // pobieram poszczegolne wartosci RGBA kazdego pikselu
+    console.log(data);
     let sciezka = req.body["sciezka"] // sciezka do zapisu
     let szerokosc = parseInt(req.body["szerokosc"])
     let wysokosc = parseInt(req.body["wysokosc"])
@@ -462,4 +464,39 @@ app.post('/saveimage', function (req, res) {
     fileStream.on('error', (err) => {
         console.error('przy zapisie wystapil blad!', err);
     });
+})
+
+app.get("/Zmiana_nazwy_obraz", function (req, res) {
+    console.log(req.query);
+    let nazwa = req.query["nazwa"]
+    let rozszerzenie = req.query["sciezka"].split("/").pop().split(".").pop()
+    console.log("ROZSZERZENIE" + rozszerzenie);
+    let rozszerzenie_sprawdzenie = req.query["nazwa"]
+    try {
+        rozszerzenie_sprawdzenie = rozszerzenie_sprawdzenie.split(".").pop()
+        if (rozszerzenie_sprawdzenie == undefined || !rozszerzenie_obrazow.includes(rozszerzenie_sprawdzenie)) {
+            nazwa = nazwa + "." + rozszerzenie
+        }
+    } catch {
+
+    }
+    let sciecha = req.query["sciezka"].replace(/\//g, "\\\\")
+    console.log(sciecha);
+    let new_sciecha = sciecha.split("\\")
+    new_sciecha.pop()
+    new_sciecha.push(nazwa)
+    new_sciecha = new_sciecha.join("/")
+    let przeslanie = new_sciecha.split("pliki")[1]
+    console.log(przeslanie);
+    if (!fs.existsSync(new_sciecha)) {
+        fs.rename(sciecha, new_sciecha, (err) => {
+            if (err) console.log(err)
+            else {
+                res.redirect("/showfile?nazwa=" + przeslanie)
+            }
+        })
+    }
+    else {
+        res.redirect("/Filemanager_two")
+    }
 })

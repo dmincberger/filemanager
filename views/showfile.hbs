@@ -30,7 +30,15 @@
 <script src="skryptyjs/textarea.js"></script>
 {{else}}
 <p id="sciezka" style="display: none;">{{sciezka}}</p>
-
+<dialog id="zmiana_dialog_obraz">
+    <form method="GET">
+        Zmiana nazwy pliku na <br>
+        <input type="text" name="nazwa"><br>
+        <input type="hidden" name="sciezka" value="{{sciezka}}">
+        <button type="submit" id="OK" formaction="/Zmiana_nazwy_obraz?nazwa={{sciezka}}">OK</button>
+        <button id="Cancel_zmiana_obraz" type="button" onclick="Stop_zmiana_obraz()">Cancel</button>
+    </form>
+</dialog>
 <div id="panel">
     {{#each effects}}
     {{#if name}}
@@ -43,12 +51,12 @@
     </div>
     {{/if}}
     {{/each}}
-
 </div>
 <div id="divcanvas" style="background-image:url('{{sciezka}}');">
 
 </div>
 <button id="revealpanel">Filter</button>
 <button id="saveimage">SAVE IMAGE</button>
+<button id="zmiana_dialog_obraz" onclick="Zmiana_nazwy_obraz()">ZMIANA NAZWY</button>
 <script src="skryptyjs/obraz.js"></script>
 {{/unless}}

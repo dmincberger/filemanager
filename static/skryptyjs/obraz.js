@@ -71,12 +71,24 @@ for (const element of panel.children) {
     })
 }
 revealpanel.addEventListener("click", () => {
-    panel.style.visibility = "visible"
-    panel.style.width = "200px"
-    for (const element of panel.children) {
-        element.style.width = "200px"
-        element.style.height = "50px"
-        element.style.cursor = "pointer"
+    if (window.getComputedStyle(document.getElementById("panel")).visibility == "hidden") {
+        panel.style.visibility = "visible"
+        panel.style.width = "200px"
+        for (const element of panel.children) {
+            element.style.width = "200px"
+            element.style.height = "50px"
+            element.style.cursor = "pointer"
+        }
+    } else {
+        panel.style.visibility = "hidden"
+        panel.style.width = "0px"
+        panel.style.transition = "width 1s"
+
+        for (const element of panel.children) {
+            element.style.width = "0px"
+            element.style.height = "0px"
+            element.style.cursor = "pointer"
+        }
     }
 })
 let test = canvas.toDataURL()
@@ -99,3 +111,13 @@ saveimage.addEventListener("click", () => {
             }
         )
 })
+
+function Zmiana_nazwy_obraz() {
+    let Zmiana_nazwy = document.getElementById("zmiana_dialog_obraz")
+    Zmiana_nazwy.showModal()
+}
+
+function Stop_zmiana_obraz() {
+    let Zmiana_nazwy = document.getElementById("zmiana_dialog_obraz")
+    Zmiana_nazwy.close()
+}

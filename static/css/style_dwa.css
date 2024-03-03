@@ -109,7 +109,7 @@ nav a {
 
 .line_counter {
     min-width: 20px;
-    max-width: 40px;
+    max-width: fit-content;
     height: fit-content;
     max-height: 721px;
     display: flex;
