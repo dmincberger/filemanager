@@ -30,15 +30,15 @@ function load() {
     let ilosc_linii = text_area.value.split("\n").length
     line_counter.innerHTML = ""
     for (let i = 0; i < ilosc_linii; i++) {
-        if (i < 20) {
-            tabela_linii.push(`${i % 20}\n`)
-            line_counter.innerHTML = tabela_linii.join("\n")
-        } else {
-            tabela_linii.shift()
-            tabela_linii.push(`${i}\n`)
-            line_counter.innerHTML = tabela_linii.join("\n")
-        }
-        // i%19 * math.cell(i/19)?
+
+        tabela_linii.push(i)
+        line_counter.innerHTML = tabela_linii.join("\n")
+
+        // else {
+        //     tabela_linii.shift()
+        //     tabela_linii.push(`${i}\n`)
+        //     line_counter.innerHTML = tabela_linii.join("\n")
+        // }
     }
 }
 let line_counter = document.getElementsByClassName("line_counter")[0]
@@ -49,14 +49,17 @@ text_area.oninput = function () {
     line_counter.innerHTML = ""
 
     for (let i = 0; i < ilosc_linii; i++) {
-        if (i < 20) {
-            tabela_linii.push(`${i % 20}\n`)
-            line_counter.innerHTML = tabela_linii.join("\n")
-        } else {
-            tabela_linii.shift()
-            tabela_linii.push(`${i}\n`)
-            line_counter.innerHTML = tabela_linii.join("\n")
-        }
+
+        tabela_linii.push(i)
+        line_counter.innerHTML = tabela_linii.join("\n")
+
+        this.style.height = this.scrollHeight + "px"
+        console.log(this.scrollHeight + ": SCRIKK HEUHGR");
+        // else {
+        //     tabela_linii.shift()
+        //     tabela_linii.push(`${i}\n`)
+        //     line_counter.innerHTML = tabela_linii.join("\n")
+        // }
         // i%19 * math.cell(i/19)?
     }
 }

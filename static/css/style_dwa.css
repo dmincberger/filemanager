@@ -109,9 +109,8 @@ nav a {
 
 .line_counter {
     min-width: 20px;
-    max-width: fit-content;
+    max-width: 30px;
     height: fit-content;
-    max-height: 721px;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -119,7 +118,7 @@ nav a {
 }
 
 #textarea {
-    height: 721px;
+    min-height: 721px;
     width: calc(100vw - 300px);
     font-size: 1.5em;
     resize: none;

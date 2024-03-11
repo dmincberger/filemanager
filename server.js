@@ -4,7 +4,10 @@ const PORT = 3000
 app.use(express.static('static'))
 const PNG = require('pngjs').PNG;
 const path = require("path")
+const cookieparser = require("cookie-parser");
+const Datastore = require('nedb')
 const { toPng } = require('@rgba-image/png')
+const { uuid, fromString } = require('uuidv4');
 const formidable = require('formidable');
 const hbs = require('express-handlebars');
 app.set(express.static(__dirname + '/pliki'));
@@ -14,8 +17,12 @@ const fs = require("fs")
 app.set('views', path.join(__dirname, 'views'));
 app.engine('hbs', hbs({ defaultLayout: 'main.hbs', extname: '.hbs', partialsDir: "views/partials", }),);
 app.use("/pliki", express.static(path.join(__dirname, "/pliki")));
+app.use(cookieparser())
 
-
+const uzytkownicy = new Datastore({
+    filename: 'uzytkownicy.db',
+    autoload: true
+});
 
 let context = {}
 let pliczki = []
@@ -135,7 +142,7 @@ app.get("/info", function (req, res) {
 
 
 app.get("/", function (req, res) {
-    res.render("Upload.hbs")
+    res.render("register.hbs")
 })
 
 app.listen(PORT, function () {
@@ -159,6 +166,46 @@ fs.readdir(przykladowa_sciezka, (err, files) => {
     }
 })
 
+app.post("/register", function (req, res) {
+    /*
+    zarerjestrowac i wpisac do bazy - najpierw
+    */
+
+    let Login = req.body["Login"]
+    let Haslo = req.body["Haslo"]
+    let Userid = fromString('Login')
+    console.log("USERID: " + Userid);
+    // przydaloby sie stworzyc uzytkownika ktorego wpisze w ogole
+
+    const Dane_logowania = {
+        Login: Login,
+        Haslo: Haslo,
+        Userid: Userid
+    };
+    uzytkownicy.find({ Login: Login }, function (err, docs) {
+        if (Object.keys(docs).length != 0) {
+            console.log("DOUKUENT: " + Object.keys(docs).length);
+            console.log("NUH UH UNUUGEUGERU");
+            let context = {
+                wiadomosc: "TAKI UZYTKOWNIK JUZ ISTNIEJE!"
+            }
+            res.render("register.hbs", context)
+        } else {
+            uzytkownicy.insert(Dane_logowania, function (err, newDoc) {
+                console.log("dodano dokument (obiekt):")
+                console.log(newDoc)
+                console.log("unikalne id dokumentu: " + newDoc._id)
+                res.redirect(307, "/login")
+            });
+        }
+    });
+
+
+})
+
+app.post("/login", function (req, res) {
+    res.render("login.hbs")
+})
 
 app.get("/Filemanager_two", function (req, res) {
 
@@ -249,6 +296,7 @@ app.get("/Tworzenie_folderu", function (req, res) {
     fs.mkdir(filepath, (err) => {
         sciezka = sciecha
         if (err) throw err
+        res.cookie("login", JSON.stringify({ a: 1, b: 2, c: "", d: [] }), { httpOnly: true, maxAge: 30 * 1000 });
         res.redirect("/Filemanager_two")
     })
 })
