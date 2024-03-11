@@ -13,6 +13,7 @@
     "handlebars": "^4.7.8",
     "isimagevalidator": "^1.1.2",
     "nedb": "^1.8.0",
+    "nocache": "^4.0.0",
     "pngjs": "^7.0.0",
     "uuidv4": "^6.2.13"
   },

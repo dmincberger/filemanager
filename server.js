@@ -142,7 +142,7 @@ app.get("/info", function (req, res) {
 
 
 app.get("/", function (req, res) {
-    res.render("register.hbs")
+    res.render("login.hbs")
 })
 
 app.listen(PORT, function () {
@@ -150,7 +150,7 @@ app.listen(PORT, function () {
 })
 
 //////////////////////////////////////////////////////////////////////// CZESC DRUGA FILEMANAGER! /////////////////////////////////////////////////////////////////
-let sciezka = ""
+let sciezka = {}
 let przykladowe_pliki = {}
 let rozszerzenie_obrazow = [
     "png", "jpg", "jpeg", "psd", "raw", "bmp", "PSD", "gif"
@@ -164,6 +164,16 @@ fs.readdir(przykladowa_sciezka, (err, files) => {
             przykladowe_pliki[przykladowe_rozszerzenie] = stats
         })
     }
+})
+
+app.get("/register_redirect", function (req, res) {
+    let context = {}
+    res.render("register.hbs", context)
+})
+
+app.get("/login_redirect", function (req, res) {
+    let context = {}
+    res.render("login.hbs", context)
 })
 
 app.post("/register", function (req, res) {
@@ -204,11 +214,43 @@ app.post("/register", function (req, res) {
 })
 
 app.post("/login", function (req, res) {
-    res.render("login.hbs")
+    let Login = req.body["Login"]
+    let Haslo = req.body["Haslo"]
+    let Userid = fromString('Login')
+    uzytkownicy.find({ Login: Login }, function (err, docs) {
+        console.log("DOK: " + docs);
+        if (Object.keys(docs).length == 0) {
+            console.log("DOUKUENT: " + Object.keys(docs).length);
+            console.log("NUH UH UNUUGEUGERU");
+            let context = {
+                wiadomosc: "NIEPOPRAWNE DANE LOGOWANIA!"
+            }
+            res.render("login.hbs", context)
+        } else {
+
+            let Home_folder = Login
+            if (!fs.existsSync(path.join("pliki", Login))) {
+                fs.mkdirSync(path.join("pliki", Login))
+                console.log("WTF");
+                sciezka[Login] = ""
+                sciezka[Login] = path.join("pliki", Login)
+                res.cookie("dane", JSON.stringify({ Login: Login, Userid: Userid }), { httpOnly: true });
+                res.redirect("/Filemanager_two")
+            } else {
+                sciezka[Login] = ""
+                sciezka[Login] = path.join("pliki", Login)
+                res.cookie("dane", JSON.stringify({ Login: Login, Userid: Userid }), { httpOnly: true });
+                res.redirect("/Filemanager_two")
+            }
+        }
+    });
+
 })
 
 app.get("/Filemanager_two", function (req, res) {
-
+    // let Login = 
+    let Login = JSON.parse(req.cookies.dane)["Login"]
+    sciezka[Login] = path.join(Login)
     let funkcjonalna_sciezka = []
     let funkcjonalna_czesc_sciezki = ""
     //ja w kontekscie przesylam obecna sciezke wybrana w folderze juz
@@ -218,13 +260,17 @@ app.get("/Filemanager_two", function (req, res) {
     //pelna sciezka, to powinien byc po prostu query["nazwa"]
 
     if (req.query["nazwa"] != undefined) { // sprawdzam czy w ogole uzytkownik dal mi folder
-        sciezka = req.query["nazwa"] //jesli tak, pobieram nazwe katalogu do ktorego wchozde
+
+        sciezka[Login] = path.join(req.query["nazwa"])
+
+        //jesli tak, pobieram nazwe katalogu do ktorego wchozde
     }
-    sciezka = sciezka.replace(/\\/g, "/")
+    sciezka[Login] = sciezka[Login].replace(/\\/g, "/")
     context = {}
     pliki = []
     foldery = []
-    const filepath = path.join("pliki", sciezka)
+    const filepath = path.join("pliki", sciezka[Login])
+
     fs.readdir(filepath, (err, files) => {
         if (err) throw err
         files.forEach(element => {
@@ -233,23 +279,22 @@ app.get("/Filemanager_two", function (req, res) {
                 if (stats.isFile()) {
                     stats["nazwa"] = element
                     stats["path"] = plik
-                    stats["sciezka"] = sciezka
+                    stats["sciezka"] = sciezka[Login]
                     pliki.push(stats)
                 } else if (stats.isDirectory()) {
                     stats["nazwa"] = element
                     stats["path"] = plik
-                    stats["sciezka"] = sciezka
+                    stats["sciezka"] = sciezka[Login]
                     foldery.push(stats)
                 }
             })
         });
-        let hierarchia = sciezka.split("/")
+        let hierarchia = sciezka[Login].split("/")
 
         for (let i = 0; i < hierarchia.length; i++) {
             funkcjonalna_czesc_sciezki = path.join(funkcjonalna_czesc_sciezki, hierarchia[i])
             funkcjonalna_sciezka.push({ czesc_sciezki: funkcjonalna_czesc_sciezki, nazwa_sciezki: hierarchia[i] })
         }
-
         context = {
             hidden: [{ sciecha: funkcjonalna_czesc_sciezki }],
             hierarchia, hierarchia,
@@ -263,6 +308,8 @@ app.get("/Filemanager_two", function (req, res) {
 })
 
 app.get("/Tworzenie_pliku", function (req, res) {
+    let Login = JSON.parse(req.cookies.dane)["Login"]
+
     let tekst_pliku = ""
     let nazwa_pliku = req.query["nazwa"]
     console.log(nazwa_pliku);
@@ -270,20 +317,22 @@ app.get("/Tworzenie_pliku", function (req, res) {
     if (przykladowe_pliki.hasOwnProperty(rozszerzenie)) {
         tekst_pliku = przykladowe_pliki[rozszerzenie]
     }
-    console.log(`TO JEST ROZSZERZENIE: ${rozszerzenie}`);
+    console.log("QUIRKI: " + req.query["sciezka"]);
     let sciecha = req.query["sciezka"]
     let filepath = path.join("pliki", sciecha, nazwa_pliku)
     if (fs.existsSync(filepath)) {
         let now = new Date()
         let currtime = now.getTime()
         filepath = path.join("pliki", sciecha, `Kopia_${currtime}_${nazwa_pliku}`)
-        sciezka = sciecha
+        sciezka[Login] = sciecha
     }
     fs.writeFileSync(filepath, tekst_pliku, { encoding: 'utf-8', flag: "w" })
-    res.redirect("/Filemanager_two")
+    res.redirect("/Filemanager_two?nazwa=" + sciecha)
 })
 
 app.get("/Tworzenie_folderu", function (req, res) {
+    let Login = JSON.parse(req.cookies.dane)["Login"]
+
     console.log(req.query);
     let nazwa_folderu = req.query["nazwa"]
     let sciecha = req.query["sciezka"]
@@ -294,20 +343,21 @@ app.get("/Tworzenie_folderu", function (req, res) {
         filepath = path.join("pliki", sciecha, `Kopia_${nazwa_folderu}_${currtime}`)
     }
     fs.mkdir(filepath, (err) => {
-        sciezka = sciecha
+        sciezka[Login] = sciecha
         if (err) throw err
         res.cookie("login", JSON.stringify({ a: 1, b: 2, c: "", d: [] }), { httpOnly: true, maxAge: 30 * 1000 });
-        res.redirect("/Filemanager_two")
+        res.redirect("/Filemanager_two?nazwa=" + sciecha)
     })
 })
 
 app.post("/Upload_two", function (req, res) {
+    let Login = JSON.parse(req.cookies.dane)["Login"]
     let form = formidable({});
     form.multiples = true
     form.keepExtensions = true
     let now = new Date()
     let currtime = now.getTime()
-    let filepath = path.join("pliki", sciezka,)
+    let filepath = path.join("pliki", sciezka[Login])
     form.uploadDir = filepath
     form.on("fileBegin", function (name, file) {
         let template = file.path.split("\\")
@@ -320,37 +370,47 @@ app.post("/Upload_two", function (req, res) {
         }
     })
     form.parse(req, function (err, fields, files) {
-        res.redirect("/Filemanager_two")
+        let sciecha = filepath.split("\\")
+        sciecha.shift()
+        sciecha = sciecha.join("\\")
+        console.log("FILING: " + sciecha);
+        res.redirect("/Filemanager_two?nazwa=" + sciecha)
     });
 })
 
 app.get('/Usun_plik', function (req, res) {
+    let Login = JSON.parse(req.cookies.dane)["Login"]
     let nazwa = req.query["nazwa"]
-    const filepath = path.join("pliki", sciezka, nazwa)
+    let sciecha = sciezka[Login]
+    const filepath = path.join("pliki", sciezka[Login], nazwa)
     fs.unlink(filepath, (err) => {
         if (err) throw err
         console.log("czas 1: " + new Date().getMilliseconds());
-        res.redirect("/Filemanager_two")
+        res.redirect("/Filemanager_two?nazwa=" + sciecha)
     })
 })
 
 app.get('/Usun_folder', function (req, res) {
+    let Login = JSON.parse(req.cookies.dane)["Login"]
     let nazwa = req.query["nazwa"]
-    const filepath = path.join("pliki", sciezka, nazwa)
+    let sciecha = sciezka[Login]
+    const filepath = path.join("pliki", sciezka[Login], nazwa)
     fs.rm(filepath, { recursive: true }, (err) => {
         if (err) throw err
         console.log("czas 1: " + new Date().getMilliseconds());
-        res.redirect("/Filemanager_two")
+        res.redirect("/Filemanager_two?nazwa=" + sciecha)
     })
 })
 
 app.get('/Zmiana_nazwy', function (req, res) {
+    let Login = JSON.parse(req.cookies.dane)["Login"]
     let nazwa = req.query["nazwa"]
     let sciecha = req.query["sciezka"]
+    console.log("KYRWA SCIECHA: " + sciecha);
     console.log(sciecha == "." ? "lol" : "nie");
-    if (sciecha == ".") {
+    if (sciecha == "." || Login) {
         console.log("trigger");
-        res.redirect("/Filemanager_two")
+        res.redirect("/Filemanager_two?nazwa=" + sciecha)
     } else {
         console.log("dalszy trigger");
         let new_sciecha = sciecha.split("\\")
@@ -363,8 +423,8 @@ app.get('/Zmiana_nazwy', function (req, res) {
             fs.rename(filepath_old, filepath_new, (err) => {
                 if (err) console.log(err)
                 else {
-                    sciezka = new_sciecha
-                    res.redirect("/Filemanager_two")
+                    sciezka[Login] = new_sciecha
+                    res.redirect("/Filemanager_two?nazwa=" + new_sciecha)
                 }
             })
         }
