@@ -91,11 +91,9 @@ revealpanel.addEventListener("click", () => {
         }
     }
 })
-let test = canvas.toDataURL()
 saveimage.addEventListener("click", () => {
 
-    console.log(test);
-    let data = context.getImageData(0, 0, canvas.width, canvas.height)
+    let data = context.getImageData(0, 0, canvas.width, canvas.height)["data"]
     const body = JSON.stringify({
         data: data,
         sciezka: sciezka,

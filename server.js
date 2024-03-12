@@ -8,6 +8,7 @@ const cookieparser = require("cookie-parser");
 const Datastore = require('nedb')
 const { toPng } = require('@rgba-image/png')
 const { uuid, fromString } = require('uuidv4');
+const nocache = require("nocache");
 const formidable = require('formidable');
 const hbs = require('express-handlebars');
 app.set(express.static(__dirname + '/pliki'));
@@ -17,6 +18,7 @@ const fs = require("fs")
 app.set('views', path.join(__dirname, 'views'));
 app.engine('hbs', hbs({ defaultLayout: 'main.hbs', extname: '.hbs', partialsDir: "views/partials", }),);
 app.use("/pliki", express.static(path.join(__dirname, "/pliki")));
+app.use(nocache())
 app.use(cookieparser())
 
 const uzytkownicy = new Datastore({
@@ -172,8 +174,13 @@ app.get("/register_redirect", function (req, res) {
 })
 
 app.get("/login_redirect", function (req, res) {
-    let context = {}
     res.render("login.hbs", context)
+})
+
+app.get("/Logout", function (req, res) {
+    res.clearCookie("dane")
+    res.clearCookie("login")
+    res.render("login.hbs")
 })
 
 app.post("/register", function (req, res) {
@@ -248,8 +255,18 @@ app.post("/login", function (req, res) {
 })
 
 app.get("/Filemanager_two", function (req, res) {
-    // let Login = 
+    if (req.cookies.dane == undefined) {
+        console.log("NIEZALOGOWANY WTF?");
+        let context = {
+            wiadomosc: "PROSZE SIE ZALOGOWAC"
+        }
+        res.render("login.hbs", context)
+
+        return 0
+    }
     let Login = JSON.parse(req.cookies.dane)["Login"]
+
+
     sciezka[Login] = path.join(Login)
     let funkcjonalna_sciezka = []
     let funkcjonalna_czesc_sciezki = ""
@@ -259,12 +276,19 @@ app.get("/Filemanager_two", function (req, res) {
     //nazwa juz zrobiona
     //pelna sciezka, to powinien byc po prostu query["nazwa"]
 
-    if (req.query["nazwa"] != undefined) { // sprawdzam czy w ogole uzytkownik dal mi folder
-
-        sciezka[Login] = path.join(req.query["nazwa"])
-
+    if (req.query["nazwa"] != undefined) { // sprawdzam czy w ogole uzytkownik dal mi folde
+        if (req.query["nazwa"].length == 0) {
+            sciezka[Login] = Login
+        } else {
+            sciezka[Login] = path.join(req.query["nazwa"])
+        }
         //jesli tak, pobieram nazwe katalogu do ktorego wchozde
+    } else {
+        sciezka[Login] = Login
     }
+
+
+
     sciezka[Login] = sciezka[Login].replace(/\\/g, "/")
     context = {}
     pliki = []
@@ -408,7 +432,7 @@ app.get('/Zmiana_nazwy', function (req, res) {
     let sciecha = req.query["sciezka"]
     console.log("KYRWA SCIECHA: " + sciecha);
     console.log(sciecha == "." ? "lol" : "nie");
-    if (sciecha == "." || Login) {
+    if (sciecha == "." || sciecha == Login) {
         console.log("trigger");
         res.redirect("/Filemanager_two?nazwa=" + sciecha)
     } else {
@@ -556,8 +580,9 @@ app.get('/Zmiana_nazwy_plik', function (req, res) {
 })
 
 app.post('/saveimage', function (req, res) {
-    let data = Object.values(req.body["data"]['data']) // pobieram poszczegolne wartosci RGBA kazdego pikselu
-    console.log(data);
+
+    let data = Object.values(req.body["data"]) // pobieram poszczegolne wartosci RGBA kazdego pikselu
+
     let sciezka = req.body["sciezka"] // sciezka do zapisu
     let szerokosc = parseInt(req.body["szerokosc"])
     let wysokosc = parseInt(req.body["wysokosc"])
